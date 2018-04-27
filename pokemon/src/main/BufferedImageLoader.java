@@ -8,7 +8,7 @@ import javax.imageio.ImageIO;
 
 /**
  * Used to load a buffered image. 
- * 
+ * @author Cody Fetterman
  *
  */
 public class BufferedImageLoader {
