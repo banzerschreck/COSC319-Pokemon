@@ -6,6 +6,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
@@ -16,17 +19,48 @@ public class PokemonFrame extends JFrame {
 
 	private JPanel contentPane;
 	private final String LOCATION = System.getProperty("user.dir");
-	
+	BufferedImage sprite;
 	/**
 	 * Initializes frame and content pane, adds key listener, and calls 
 	 */
 	private void init(){
+		
+		/**
+		 * Reads in a Buffered Image taken from Walking.png. The whole sprite sheet isn't loaded in
+		 * instead just a component specified by an x and y coordinate, and the width and height of the image. 
+		 */
+		BufferedImageLoader loader = new BufferedImageLoader();
+		BufferedImage spriteSheet = null;
+		try {
+			spriteSheet = loader.loadImage("Walking.png"); 
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		
+		Sprites sprites = new Sprites(spriteSheet);
+		
+		//This array contains each image pulled from the sprite sheet. 
+		ArrayList<BufferedImage> walkingSprites = new ArrayList<BufferedImage>();
+		
+		walkingSprites.add(sprites.grabSprite(0, 0, 30, 26));
+		walkingSprites.add(sprites.grabSprite(30, 0, 30, 26));
+		walkingSprites.add(sprites.grabSprite(60, 0, 30, 26));
+		walkingSprites.add(sprites.grabSprite(90, 0, 30, 26));
+		walkingSprites.add(sprites.grabSprite(120, 0, 29, 26));
+		walkingSprites.add(sprites.grabSprite(149, 0, 30, 26));
+		walkingSprites.add(sprites.grabSprite(179, 0, 28, 26));
+		walkingSprites.add(sprites.grabSprite(207, 0, 29, 26));
+		
+		
+
+		
 		JLayeredPane panel = new JLayeredPane(){
 			/**
 			 * Creates a Graphics2D object used to draw all objects in the game
 			 */
 			public void paintComponent(Graphics g){
 				super.paintComponent(g);
+				g.drawImage(walkingSprites.get(4), 100, 100, null); //Used this to test if the correct image would be drawn to the screen. Must comment out run() to see.
 				Graphics2D g2 = (Graphics2D) g;
 				
 				//g2.draw(image, xpos, ypos, null)
