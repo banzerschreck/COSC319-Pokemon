@@ -11,7 +11,7 @@ import javax.swing.JPanel;
  */
 public class PokemonFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
-	private final int WINDOW_X = 1600, WINDOW_Y = 900;
+	private final int WINDOW_X = 800, WINDOW_Y = 600;
 	private JPanel contentPane;
 	BufferedImage sprite;
 

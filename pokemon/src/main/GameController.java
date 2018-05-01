@@ -22,10 +22,13 @@ public class GameController {
 	private ArrayList<BufferedImage> walkingSpritesBulbasaur;
 	private ArrayList<BufferedImage> walkingSpritesZubat;
 	
-	private int playerX = 50, playerY = 50;
-	private static final int CHARACTER_CHARMANDER = 0, CHARACTER_BULBASAUR = 1, CHARACTER_ZUBAT = 2;
+	private int playerX = 50, playerY = 50; //player position
+	private int playerVelX = 0, playerVelY = 0; //player velocity
+	private final int CHARACTER_CHARMANDER = 0, CHARACTER_BULBASAUR = 1, CHARACTER_ZUBAT = 2;
 	private int currentCharacter = CHARACTER_CHARMANDER;
 	private int walkCycleIndex = 0;
+	
+	private final int GRAVITY = -1;
 	
 	private PokemonFrame frame;
 	/**
@@ -38,11 +41,16 @@ public class GameController {
 		init();
 	}
 	
+	public void loadGeometry() {
+		
+	}
+	
 	/**
 	 * Reads in a Buffered Image taken from Walking.png. The whole sprite sheet isn't loaded in
 	 * instead just a component specified by an x and y coordinate, and the width and height of the image. 
 	 */
 	private void loadSprites() {
+		//TODO: Add sprites for other characters
 		BufferedImageLoader loader = new BufferedImageLoader();
 		BufferedImage spriteSheet = null;;
 		try {
@@ -78,6 +86,7 @@ public class GameController {
 	 */
 	private void init(){
 		loadSprites();
+		loadGeometry();
 		JLayeredPane panel = new JLayeredPane(){
 			private static final long serialVersionUID = 1L;
 			//draw stuff!
@@ -87,9 +96,9 @@ public class GameController {
 				//USAGE: g2.draw(image, xpos, ypos, null)
 				//Used this to test if the correct image would be drawn to the screen. Must comment out run() to see.
 				g2.drawImage(bg, 0, 0, null);
-				g2.drawImage(walkingSpritesCharmander.get(walkCycleIndex), playerX, playerY, null); 
+				g2.drawImage(walkingSpritesCharmander.get(walkCycleIndex), playerX, playerY, null);
 
-				//g2.dispose();
+				g2.dispose();
 			}
 		};
 		frame.setContentPane(panel);
@@ -98,6 +107,7 @@ public class GameController {
 			 * Not used
 			 */
 			public void keyTyped(KeyEvent e) {
+				
 			}
 			/**
 			 * Runs game logic when the player presses a button on the keyboard
@@ -119,41 +129,48 @@ public class GameController {
 				}
 				if(e.getKeyCode()==KeyEvent.VK_D){
 					//move the player right (move the stage left)
-					System.out.println("D pressed");
 					walkCycleIndex++;
 					int max = -1;
 					if(currentCharacter == CHARACTER_CHARMANDER) max = walkingSpritesCharmander.size();
 					else if(currentCharacter == CHARACTER_BULBASAUR) max = walkingSpritesBulbasaur.size();
 					else if(currentCharacter == CHARACTER_ZUBAT) max = walkingSpritesZubat.size();
-					if(walkCycleIndex > max) {
+					if(walkCycleIndex > max-1) {
 						walkCycleIndex = 0;
 					}
+					playerX += 3;
 				}
 			}
-			/**
-			 * Not used
-			 */
+			
 			public void keyReleased(KeyEvent arg0) {
+				walkCycleIndex = 0;
 			}
 		});
 		frame.pack();
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
-		//run();
+		run();
 	}
 	
 	/**
 	 * Repaints the frame to update sprite positions
 	 */
 	public void render() {
-		//frame.repaint();
+		frame.repaint();
 	}
 	
 	/**
-	 * Runs game logic that doesn't rely on user input (we might not have any since we're not doing enemies)
+	 * Runs game logic that doesn't rely on user input, mostly geometry collisions
 	 */
 	public void tick() {
-		
+		//TODO: Implement gravity correctly
+		playerVelY -= GRAVITY; //add gravity
+		playerY += playerVelY;
+		if(playerY >= frame.getHeight() - walkingSpritesCharmander.get(0).getHeight()) { //don't move the sprite off the bottom of the screen
+			playerY = frame.getHeight() - walkingSpritesCharmander.get(0).getHeight();
+			playerVelY = 0;
+		}
+		//System.out.println("Vel: " + playerVelY + ", ");
+		//System.out.println("Pos: " + playerX + ", " + playerY);
 	}
 	
 	/**
@@ -175,13 +192,13 @@ public class GameController {
 			lastTick=now;
 			while(delta>=1){
 				ticks++;
-				//tick();
+				tick();
 				//System.out.println("Tick");
 				delta-=1;
 				shouldRender=true;
 			}
 			if(shouldRender){//render a new frame
-				//render();
+				render();
 				frames++;
 			}
 			if(System.currentTimeMillis()-lastTimer>=1000){//reset after 1 second
