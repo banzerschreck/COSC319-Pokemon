@@ -25,6 +25,11 @@ public class GameController {
 	
 	private int playerX = 50, playerY = 600; //player position
 	private int playerVelX = 0, playerVelY = 0; //player velocity
+	private final int CHARACTER_CHARMANDER = 0, CHARACTER_BULBASAUR = 1, CHARACTER_ZUBAT = 2;
+	private int characterIndex = 0;
+	private int currentCharacter = characterIndex;
+	private double tickCounter = 0;
+	private int idleCycleIndex = 0;
 	private static final int PLAYER_VEL_X_MAX = 3, PLAYER_VEL_Y_MAX = 3;
 	private static final int PLAYER_ACCEL_X = 1;
 	private static final int JUMP_VEL = 5;
@@ -77,9 +82,32 @@ public class GameController {
 		
 		//walk sprites for Bulbasaur
 		walkingSpritesBulbasaur = new ArrayList<BufferedImage>();
+		walkingSpritesBulbasaur.add(spritesBW.grabSprite(0, 0, 21, 21));
+		walkingSpritesBulbasaur.add(spritesBW.grabSprite(21, 0, 25, 21));
+		walkingSpritesBulbasaur.add(spritesBW.grabSprite(46, 0, 23, 21));
+		
+		Sprites spritesBA = new Sprites(spriteSheetBA);
+		//attack sprites for Bulbasaur 
+		attackingSpritesBulbasaur = new ArrayList<BufferedImage>();
+		attackingSpritesBulbasaur.add(spritesBA.grabSprite(0, 0, 21, 19));
+		attackingSpritesBulbasaur.add(spritesBA.grabSprite(21, 0, 23, 19));
+		attackingSpritesBulbasaur.add(spritesBA.grabSprite(44, 0, 25, 19));
+		attackingSpritesBulbasaur.add(spritesBA.grabSprite(69, 0, 26, 19));
+		attackingSpritesBulbasaur.add(spritesBA.grabSprite(95, 0, 26, 19));
+		attackingSpritesBulbasaur.add(spritesBA.grabSprite(121, 0, 22, 19));
+		
+		Sprites spritesZI = new Sprites(spriteSheetZI);
+		//Idle Zubat sprites
+		idleSpritesZubat = new ArrayList<BufferedImage>();
+		idleSpritesZubat.add(spritesZI.grabSprite(0, 0, 17, 25));
+		idleSpritesZubat.add(spritesZI.grabSprite(17, 0, 20, 25));
+		idleSpritesZubat.add(spritesZI.grabSprite(37, 0, 20, 25));
 		
 		//walk sprites for Zubat? idk
 		walkingSpritesZubat = new ArrayList<BufferedImage>();
+		walkingSpritesZubat.add(spritesZW.grabSprite(0, 0, 20, 25));
+		walkingSpritesZubat.add(spritesZW.grabSprite(20, 0, 20, 25));
+		walkingSpritesZubat.add(spritesZW.grabSprite(40, 0, 17, 25));
 		
 		characterSprites = walkingSpritesCharmander;
 	}
@@ -113,18 +141,28 @@ public class GameController {
 			/**
 			 * Runs game logic when the player presses a button on the keyboard
 			 */
-			public void keyPressed(KeyEvent e) {
-				//	if the player presses the key that corresponds to VK_SPACE
-				//  in this example, runs code written here (calls to other methods for example)
+			public void keyPressed(KeyEvent e) 
+				if(e.getKeyCode()==KeyEvent.VK_W){
+					//TODO: Finish special moves. 
+					//Special move: Charmander has fire ball, Zubat flies, Bulbasaur??
+					if(currentCharacter == CHARACTER_CHARMANDER) max = attackingSpritesCharmander.size();
+					else if(currentCharacter == CHARACTER_BULBASAUR) max = attackingSpritesBulbasaur.size();
+					//else if(currentCharacter == CHARACTER_ZUBAT) max = walkingSpritesZubat.size();
+					if (!walking && currentCharacter == CHARACTER_CHARMANDER || currentCharacter == CHARACTER_BULBASAUR) {
+						if(!walking) attacking = true;
+						attackCycleIndex++;
+						if(attackCycleIndex > max-1) {
+						attackCycleIndex = 0; 
+						}
+					}
 				if(e.getKeyCode()==KeyEvent.VK_SPACE){
 					//Make the player jump
 					playerVelY = JUMP_VEL;
-				}
-				if(e.getKeyCode()==KeyEvent.VK_W){
-					//probably won't be used
 				} else if(e.getKeyCode()==KeyEvent.VK_A){
 					//move the player left (move the stage right)
 					walkCycleIndex++;
+					LDirection = true;
+					if(!attacking) walking = true;
 					int max = characterSprites.size();
 					if(walkCycleIndex > max-1) {
 						walkCycleIndex = 0;
@@ -135,9 +173,18 @@ public class GameController {
 					}
 				} else if(e.getKeyCode()==KeyEvent.VK_S){
 					//make the player duck? (we might not use this)
-				} else if(e.getKeyCode()==KeyEvent.VK_D){
-					//move the player right (move the stage left)
+					characterIndex++;
+					if (characterIndex > 2) characterIndex = 0;
+					if (characterIndex == 0) currentCharacter = CHARACTER_CHARMANDER;
+					if (characterIndex == 1) currentCharacter = CHARACTER_BULBASAUR;
+					if (characterIndex == 2) currentCharacter = CHARACTER_ZUBAT;
+				}
+		
+				if(e.getKeyCode()==KeyEvent.VK_D){
+					//move the player right 
 					walkCycleIndex++;
+					LDirection = false;
+					if(!attacking) walking = true;
 					int max = characterSprites.size();
 					if(walkCycleIndex > max-1) {
 						walkCycleIndex = 0;
@@ -196,6 +243,21 @@ public class GameController {
 			playerY = bottom;
 			playerVelY = 0;
 		}
+		//System.out.println("Vel: " + playerVelY + ", ");
+		//System.out.println("Pos: " + playerX + ", " + playerY);
+		
+		//TODO: Idle animations 
+		//Possible idle animation? Not sure where to put this. Works if you drag mouse cursor across the JFrame. Otherwise it is really laggy.
+//		int max = -1;
+//		if(currentCharacter == CHARACTER_CHARMANDER) max = idleSpritesCharmander.size();
+//		else if(currentCharacter == CHARACTER_BULBASAUR) max = walkingSpritesBulbasaur.size();
+//		else if(currentCharacter == CHARACTER_ZUBAT) max = walkingSpritesZubat.size();
+//		tickCounter+=0.25;
+//		if(tickCounter % 1 == 0)idleCycleIndex++;
+//		if(idleCycleIndex > max-1) {
+//			idleCycleIndex = 0;
+//			tickCounter = 0;
+//		}
 	}
 	
 	/**
