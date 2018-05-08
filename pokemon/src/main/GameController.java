@@ -36,9 +36,11 @@ public class GameController {
 	
 	private int characterIndex = 0;
 	private int tickCounter = 0;
+	private int jumpCounter = 0;
 	private boolean LDirection = false;
 	private boolean walking = false; 
 	private boolean attacking = false;
+	private boolean flying = false;
 	
 	//these are kinda used for both so they're in the middle
 	private Character charmander;
@@ -48,8 +50,9 @@ public class GameController {
 	
 	//movement variables
 	private final int GRAVITY = -1;
+	private final double ZUGRAVITY = -0.5;
 	private int playerX = 50, playerY = 50; //player position
-	private int playerVelY = 0; //player velocity
+	private double playerVelY = 0; //player velocity
 	private static final int PLAYER_MAX_VEL_Y = 30;
 	
 	//system variables
@@ -227,57 +230,27 @@ public class GameController {
 				if(e.getKeyCode()==KeyEvent.VK_W){
 					//TODO: Finish special moves. 
 					//Special move: Charmander has fire ball, Zubat flies, Bulbasaur??
-					playerSprites = currentChar.attackingSprites;
-					int max = currentChar.attackingSprites.size();
-					if (!walking && (currentChar == charmander || currentChar == bulbasaur)) {
-						attacking = true;
-						playerSpritesIndex++;
-						if(playerSpritesIndex > max-1) {
-							playerSpritesIndex = 0; 
-						}
-					}
+					attacking = true;
 				}
 				if(e.getKeyCode()==KeyEvent.VK_SPACE){
-					//make the player jump (only for zubat)
-					if(currentChar == zubat) {
-						playerVelY -= currentChar.jumpSpeed;
+					if(currentChar== zubat) {
+						flying = true;
 					}
 				}
 				if(e.getKeyCode()==KeyEvent.VK_A){
-					//move the player left
-					playerSprites = currentChar.walkingSprites;
-					playerSpritesIndex++;
 					LDirection = true;
-					if(!attacking) walking = true;
-					int max = currentChar.walkingSprites.size();
-					if(playerSpritesIndex > max-1) {
-						playerSpritesIndex = 0;
-					}
-					//move the player
-					playerX -= currentChar.walkSpeed;
+					walking = true;
 				}
 				if(e.getKeyCode()==KeyEvent.VK_D){
 					//move the player right
-					playerSprites = currentChar.walkingSprites;
-					playerSpritesIndex++;
 					LDirection = false;
-					if(!attacking) walking = true;
-					int max = currentChar.walkingSprites.size();
-					if(playerSpritesIndex > max-1) {
-						playerSpritesIndex = 0;
-					}
-					//move the player
-					playerX += currentChar.walkSpeed;
+					walking = true;
 				} 
-				//switch characters
+	
 				if(e.getKeyCode()==KeyEvent.VK_S){
-					//make the player duck? (we might not use this)
-					characterIndex++;
-					if (characterIndex > 2) characterIndex = 0;
-					if (characterIndex == 0) currentChar = charmander;
-					if (characterIndex == 1) currentChar = bulbasaur;
-					if (characterIndex == 2) currentChar = zubat;
+					
 				}
+				
 				if(e.getKeyCode() == KeyEvent.VK_1) {
 					currentChar = charmander;
 				} else if(e.getKeyCode() == KeyEvent.VK_2) {
@@ -290,6 +263,8 @@ public class GameController {
 			public void keyReleased(KeyEvent arg0) {
 				walking = false;
 				attacking = false;
+				flying = false;
+				jumpCounter = 0;
 				playerSpritesIndex = 0;
 				playerSprites = currentChar.idleSprites;
 			}
@@ -314,7 +289,11 @@ public class GameController {
 		//TODO: move sprite and movement logic out of keyboard inputs and into here! Set bools that turn on/off based on input that activates code held here
 		//TODO: implement attacks
 		//TODO: implement geometry collision detection stuff
-		playerVelY -= GRAVITY; //add gravity
+		if(currentChar != zubat) {
+			playerVelY -= GRAVITY; //add gravity
+		} else {
+			playerVelY -= ZUGRAVITY;
+		}
 		if(playerVelY > PLAYER_MAX_VEL_Y) {
 			playerVelY = PLAYER_MAX_VEL_Y;
 		}
@@ -334,6 +313,57 @@ public class GameController {
 		}
 		if (playerSpritesIndex > max - 1) {
 			playerSpritesIndex = 0;
+		}
+		if (walking && !LDirection) {
+			playerSprites = currentChar.walkingSprites;
+			tickCounter++;
+			if (tickCounter > 4) {
+				playerSpritesIndex++;
+				tickCounter = 0; 
+			}
+			max = currentChar.walkingSprites.size();
+			if(playerSpritesIndex > max-1) {
+				playerSpritesIndex = 0;
+			}
+			//move the player
+			playerX += currentChar.walkSpeed;
+		}
+		if (walking && LDirection) {
+			//move the player left
+			playerSprites = currentChar.walkingSprites;
+			tickCounter++;
+			if (tickCounter > 4) {
+				playerSpritesIndex++;
+				tickCounter = 0; 
+			}
+			max = currentChar.walkingSprites.size();
+			if(playerSpritesIndex > max-1) {
+				playerSpritesIndex = 0;
+			}
+			//move the player
+			playerX -= currentChar.walkSpeed;
+		}
+		if(attacking && !walking) {
+			playerSprites = currentChar.attackingSprites;
+			max = currentChar.attackingSprites.size();
+			if (!walking && (currentChar == charmander || currentChar == bulbasaur)) {
+				tickCounter++;
+				if (tickCounter > 6) {
+					playerSpritesIndex++;
+					tickCounter = 0; 
+				}
+				if(playerSpritesIndex > max-1) {
+					playerSpritesIndex = 0; 
+				}
+			}
+		}
+		if(flying == true) {
+			if(jumpCounter == 0) {
+				if(currentChar == zubat) {
+					jumpCounter++;
+					playerVelY -= currentChar.jumpSpeed;
+				}
+			}
 		}
 	}
 	
